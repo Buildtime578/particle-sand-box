@@ -1,0 +1,169 @@
+# One material per line:
+#   name, mass, type, color, friction, strength, break style, extras...
+#
+# type:      solid  = never moves (walls, stone)
+#            rigid  = everything painted in one stroke becomes one piece
+#                     that falls, tumbles and breaks (steel, concrete, rock)
+#            powder = falls and piles up (sand, dust)
+#            liquid = falls and flows sideways (water, lava)
+#            gas    = rises and drifts around (steam, smoke)
+#
+# mass:      density compared to water (water = 1, steel = 7.8).
+#            Heavier things sink through lighter powders, liquids and gases.
+#            It's also how strongly it pulls in mutual gravity (0 = no pull),
+#            and how hard it hits things.
+#
+# color:     hex code like #ff8800 (optional, leave empty to get a random color)
+#
+# friction:  0 to 1 (optional, default 0.3, not used by solid or rigid)
+#            0   = slippery, slides around freely (water)
+#            0.5 = grips a bit, makes steeper piles (sand)
+#            1   = only moves straight toward gravity, holds its shape
+#
+# strength:  how much it takes to break it (optional, only for solid and rigid)
+#            0 = unbreakable (default for solid), rigid default is 5
+#            higher = survives bigger hits, longer overhangs and more weight on top
+#            roughly the real (pulling-apart) strength in units of 2 MPa
+#
+# break style: how it breaks when hit hard (optional, only for solid and rigid)
+#            brittle = cracks into chunks (rock, concrete, glass) - the default
+#            ductile = dents and bends instead (metals)
+#            snap    = snaps in two along a crack, with a few splinters (wood)
+#
+# EXTRAS (optional, any order, after the type):
+#   hot=1450:Molten Steel   above 1450 C it turns into Molten Steel
+#   cold=1400:Steel         below 1400 C it turns into Steel
+#   temp=1200               its temperature when you paint it (default 20 C)
+#   heat=0.5                how well it passes heat on, 0 to 1 (default 0.2)
+#   bounce=0.8              how bouncy it is, 0 to 0.95 (default 0.15)
+#   life=60                 only lasts about this many ticks, then vanishes (fire, smoke)
+#   burn=300                catches fire at this temperature, then burns until it
+#                           reaches its hot= temperature and turns into that
+#   burnrate=6              how fast it burns through (default 6; higher = burns out sooner)
+#   explode=1               blows up instead of burning; how strong, per cell
+#   shock=3                 also blows up if it hits something at this speed (cells per tick)
+#   thrust=60               burning gas pushes on what's around it (rocket fuel)
+#   stick=1                 sticks to any piece it's painted against (fuel inside a rocket)
+#   latent=60               boils / melts slowly: holds at its hot= temperature, soaking up
+#                           heat (and chilling what's around it), about this many heat steps
+#   ignite=0.25             chance to set fire to something burnable it touches
+#                           (flames always do; burning fuel too, if it has ignite=)
+#   neutron=1               it's a neutron: flies straight, goes through most things
+#   fission=0.1             chance (per cell a neutron goes through) to split: lots of
+#                           heat and 2-3 more neutrons. Enough of it together = chain reaction
+#   fusion=0.05             like fission, but it's used up in a flash of heat (deuterium)
+#   radio=0.001             chance each tick to give off a neutron by itself
+#   absorb=0.3              chance (per cell) to soak up a neutron going through it
+#                           (default 0.3 for solids, 0.03 for everything else)
+#   clone=1                 copy block: copies the first loose thing that touches it,
+#                           then keeps making more of it
+#   grow=0.03               plant: chance per tick to grow into water it touches
+#   sprout=1                seed: turns into the plant when it touches water
+#   gol=1                   Game of Life cell (Conway's rules, one generation every 4 ticks)
+#
+# Lines starting with # are ignored.
+# After editing, press "Reload particles" in the sim.
+
+# Numbers are based on real materials: density compared to water, melting /
+# boiling points in C, strength in units of 2 MPa, and heat flow from
+# 1 (silver, copper) down to 0.02 (rubber, wood). Gases are much lighter than
+# anything else but not as light as in real life, so they still behave.
+
+# --- basics ---
+Sand,      1.6,  powder, #e3c47a, 0.5,  ,   ,         hot=1700:Molten Glass, heat=0.15
+Gravel,    1.8,  powder, #8c8378, 0.65, ,   ,         hot=1200:Lava, heat=0.2
+Dirt,      1.3,  powder, #6b4e33, 0.7,  ,   ,         heat=0.1
+Salt,      2.16, powder, #f0eeea, 0.45, ,   ,         hot=801:Molten Salt, heat=0.3
+Snow,      0.3,  powder, #f4f8ff, 0.8,  ,   ,         temp=-5, hot=0:Water, heat=0.1
+Ash,       0.5,  powder, #9a9893, 0.55, ,   ,         heat=0.05
+Dust,      0.5,  powder, #b8a88a, 0.7,  ,   ,         burn=350, hot=420:Fire, ignite=0.5, heat=0.05
+Water,     1.0,  liquid, #3373f2, 0.0,  ,   ,         hot=100:Steam, cold=0:Ice, heat=0.4, absorb=0.08
+Salt Water,1.03, liquid, #3f80e8, 0.0,  ,   ,         hot=102:Steam, cold=-2:Ice, heat=0.4
+Oil,       0.87, liquid, #6b4a1f, 0.05, ,   ,         burn=300, hot=600:Smoke, ignite=0.1, heat=0.1
+Gasoline,  0.74, liquid, #e8d37a, 0.0,  ,   ,         burn=250, hot=330:Fire, ignite=0.35, heat=0.1
+Mercury,   13.5, liquid, #b8bcc4, 0.0,  ,   ,         hot=357:Mercury Vapor, cold=-39:Solid Mercury, heat=0.6
+Wall,      0,    solid,  #73737f, 0,    0,  ,         heat=0.1
+Stone,     2.7,  solid,  #5c5c66, 0,    25, ,         hot=1200:Lava, heat=0.2
+
+# --- fuel (burns slowly and glows) ---
+Charcoal,  0.35, powder, #2b2724, 0.6,  ,   ,         burn=350, hot=1000:Ash, burnrate=3, ignite=0.06, heat=0.1
+Coal,      1.35, rigid,  #1f1d1c, 0,    15,   brittle, burn=450, hot=1300:Ash, burnrate=2, ignite=0.04, heat=0.1
+Fuse,      0.9,  rigid,  #b8915a, 0,    5,    snap,    burn=250, hot=400:Ash, burnrate=8, ignite=0.7, heat=0.02
+Thermite,  2.4,  powder, #8a5a4a, 0.5,  ,   ,         burn=900, hot=2500:Molten Iron, burnrate=60, ignite=0.4, heat=0.3
+
+# --- explosives (they go off when they catch fire; some also when hit) ---
+Solid Fuel,    1.8,  rigid,  #c9b98a, 0,    15, brittle, burn=350, hot=900:Smoke, burnrate=1.5, ignite=0.3, thrust=800, stick=1, heat=0.05
+Gunpowder,     1.7,  powder, #3c3a38, 0.5,  , ,        burn=300, explode=1.0, heat=0.1
+TNT,           1.65, rigid,  #c0392b, 0,    20, brittle, burn=300, explode=2.5, heat=0.1
+C4,            1.6,  rigid,  #e6dfc4, 0,    20, ductile, burn=500, explode=4.0, heat=0.1
+Nitroglycerin, 1.6,  liquid, #e9e4a6, 0.0,  , ,        burn=200, explode=3.0, shock=2.5, heat=0.1
+
+# --- gases ---
+Steam,     0.05, gas,    #e0e6ee, 0,    ,   ,         temp=110, cold=95:Water, heat=0.02
+Smoke,     0.08, gas,    #4d4d4d, 0,    ,   ,         life=400, heat=0.02
+Fire,      0.04, gas,    #ff9a30, 0,    ,   ,         temp=900, cold=350:Smoke, life=60, ignite=0.5, heat=0.3
+Mercury Vapor, 0.1, gas, #c9ccd3, 0,    ,   ,         temp=360, cold=350:Mercury, heat=0.05
+
+# --- building materials ---
+Rock,      2.7,  rigid,  #6e6258, 0,    25,   brittle, hot=1200:Lava, heat=0.2
+Concrete,  2.4,  rigid,  #b0aca3, 0,    15,   brittle, hot=1500:Lava, heat=0.15, absorb=0.12
+Brick,     1.9,  rigid,  #a5523a, 0,    10,   brittle, hot=1600:Lava, heat=0.1
+Wood,      0.6,  rigid,  #8b5a2b, 0,    20,   snap,    burn=300, hot=600:Charcoal, ignite=0.03, heat=0.03
+Glass,     2.5,  rigid,  #bfe8f0, 0,    20,   brittle, hot=1400:Molten Glass, heat=0.08
+Ice,       0.92, rigid,  #cdeefc, 0,    1,    brittle, temp=-10, hot=0:Water, heat=0.45
+Rubber,    1.1,  rigid,  #2e2e33, 0,    8,    ductile, bounce=0.8, burn=300, hot=650:Smoke, heat=0.02
+Kevlar,    1.44, rigid,  #e3c84a, 0,    1800, ductile, hot=450:Smoke, heat=0.03
+Diamond,   3.5,  rigid,  #d9f6ff, 0,    1500, brittle, burn=700, hot=1100:Smoke, heat=1.0
+Solid Mercury, 14.2, rigid, #a7abb3, 0, 5,    ductile, temp=-50, hot=-39:Mercury, heat=0.6
+
+# --- metals ---
+Iron,      7.87, rigid,  #7d7f84, 0,    100,  ductile, hot=1538:Molten Iron, heat=0.35
+Steel,     7.85, rigid,  #9aa3ad, 0,    200,  ductile, hot=1450:Molten Steel, heat=0.3
+Aluminum,  2.7,  rigid,  #c9ced6, 0,    80,   ductile, hot=660:Molten Aluminum, heat=0.7
+Copper,    8.96, rigid,  #c97a45, 0,    100,  ductile, hot=1085:Molten Copper, heat=0.95
+Silver,    10.5, rigid,  #d8dbe0, 0,    80,   ductile, hot=962:Molten Silver, heat=1.0
+Gold,      19.3, rigid,  #e6b93a, 0,    60,   ductile, hot=1064:Molten Gold, heat=0.8
+Lead,      11.3, rigid,  #6f7380, 0,    8,    ductile, hot=327:Molten Lead, heat=0.25, absorb=0.3
+Titanium,  4.5,  rigid,  #b5b8c0, 0,    440,  ductile, hot=1668:Molten Titanium, heat=0.15
+Tungsten,  19.3, rigid,  #8a8f99, 0,    750,  brittle, hot=3422:Molten Tungsten, heat=0.5
+
+# --- super cold ---
+# Liquid nitrogen boils at -196 C: it freezes what it touches (water into ice,
+# lava into rock) while it boils away into nitrogen gas, which thins into the air.
+Liquid Nitrogen, 0.81, liquid, #bfe3ff, 0.0,  , , temp=-200, hot=-196:Nitrogen, latent=60, heat=0.3
+Nitrogen,        0.04, gas,    #dceeff, 0,    , , temp=-190, cold=-200:Liquid Nitrogen, life=250, heat=0.05
+
+# --- radioactive (neutrons split uranium / plutonium: heat and more neutrons) ---
+# A small pile just gets warm. Too much in one place (critical mass) runs away:
+# it heats up, melts, and finally blows up. Lead, concrete and water block neutrons.
+Neutron,       0.01, gas,    #20e0ff, 0,    , , neutron=1, life=120, heat=0.01
+Uranium,       19.1, powder, #6f7a2a, 0.5,  , , fission=0.03, radio=0.00005, hot=1132:Molten Uranium, heat=0.27
+Plutonium,     19.8, powder, #4f8a2a, 0.5,  , , fission=0.12, radio=0.0005, hot=640:Molten Plutonium, heat=0.07
+Polonium,      9.2,  powder, #3fa86a, 0.5,  , , radio=0.01, heat=0.2
+Deuterium,     1.1,  liquid, #3058c8, 0.0,  , , fusion=0.15, absorb=0.01, heat=0.6
+
+# --- special ---
+Copy Block,    5,    solid,  #ffd010, 0,    0, , clone=1, heat=0.1
+
+# --- life ---
+# Plant drinks water it touches and grows into it (and burns). Seeds fall like
+# sand and sprout when they touch water. Life follows the Game of Life rules.
+Plant,         0.8,  solid,  #2f9e3a, 0,    0, , grow=0.03, burn=250, hot=450:Ash, ignite=0.15, heat=0.05
+Seed,          0.9,  powder, #a07a3a, 0.5,  , , sprout=1, burn=250, hot=400:Ash, heat=0.05
+Life,          1,    solid,  #3dff6a, 0,    0, , gol=1
+
+# --- hot liquids (they cool back into the solid version) ---
+Lava,             2.6,  liquid, #ff5a1f, 0.2,  , , temp=1200, cold=950:Rock, heat=0.2
+Molten Glass,     2.3,  liquid, #ffa060, 0.3,  , , temp=1500, cold=1300:Glass, heat=0.08
+Molten Salt,      1.55, liquid, #ffd2a0, 0.05, , , temp=850, cold=790:Salt, heat=0.3
+Molten Iron,      6.98, liquid, #ff7020, 0.05, , , temp=1600, cold=1520:Iron, heat=0.35
+Molten Steel,     7.0,  liquid, #ff7a1a, 0.05, , , temp=1550, cold=1420:Steel, heat=0.3
+Molten Aluminum,  2.38, liquid, #ff9a4a, 0.05, , , temp=750,  cold=640:Aluminum, heat=0.7
+Molten Copper,    8.02, liquid, #ff8040, 0.05, , , temp=1200, cold=1060:Copper, heat=0.95
+Molten Silver,    9.3,  liquid, #ffb080, 0.05, , , temp=1050, cold=950:Silver, heat=1.0
+Molten Gold,      17.3, liquid, #ffc040, 0.05, , , temp=1150, cold=1050:Gold, heat=0.8
+Molten Lead,      10.7, liquid, #d07050, 0.05, , , temp=400,  cold=320:Lead, heat=0.25
+Molten Titanium,  4.1,  liquid, #ffb070, 0.05, , , temp=1750, cold=1650:Titanium, heat=0.15
+Molten Tungsten,  17.6, liquid, #ffd090, 0.05, , , temp=3500, cold=3350:Tungsten, heat=0.5
+Molten Uranium,   17.3, liquid, #c8d040, 0.05, , , temp=1200, cold=1132:Uranium, fission=0.03, radio=0.00005, heat=0.27
+Molten Plutonium, 16.6, liquid, #a8e040, 0.05, , , temp=700,  cold=640:Plutonium, fission=0.12, radio=0.0005, heat=0.07
